@@ -1,12 +1,10 @@
-
-name: Build APK
+name: Build ImageSeek APK
 
 on:
   workflow_dispatch:
   push:
     branches:
       - main
-      - master
 
 jobs:
   build:
@@ -22,17 +20,41 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
 
-      - name: Make Gradle executable
-        run: chmod +x gradlew
+      - name: Rebuild Android folder structure
+        run: |
+          mkdir -p app/src/main/java/com/example/imageseek
+          mkdir -p app/src/main/res/drawable
+          mkdir -p app/src/main/res/values
 
-      - name: Build debug APK
-        run: ./gradlew assembleDebug
+          cp app__build.gradle app/build.gradle
+          cp app__proguard-rules.pro app/proguard-rules.pro
+          cp app__src__main__AndroidManifest.xml app/src/main/AndroidManifest.xml
+
+          cp app__src__main__java__com__example__imageseek__MainActivity.java \
+            app/src/main/java/com/example/imageseek/MainActivity.java
+
+          cp app__src__main__res__drawable__ic_launcher_background.xml \
+            app/src/main/res/drawable/ic_launcher_background.xml
+
+          cp app__src__main__res__drawable__ic_launcher_foreground.xml \
+            app/src/main/res/drawable/ic_launcher_foreground.xml
+
+          cp app__src__main__res__values__colors.xml \
+            app/src/main/res/values/colors.xml
+
+          cp app__src__main__res__values__themes.xml \
+            app/src/main/res/values/themes.xml
+
+      - name: Build APK
+        run: gradle :app:assembleDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: ImageSeek-debug
+          name: ImageSeek-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk

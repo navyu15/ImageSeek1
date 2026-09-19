@@ -31,8 +31,7 @@ jobs:
           mkdir -p app/src/main/res/drawable
           mkdir -p app/src/main/res/values
 
-          cp app__build.gradle app/build.gradle
-          cp app__proguard-rules.pro app/proguard-rules.pro
+          cp app__build.gradle app/build.gradl
           cp app__src__main__AndroidManifest.xml app/src/main/AndroidManifest.xml
 
           cp app__src__main__java__com__example__imageseek__MainActivity.java \

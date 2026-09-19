@@ -25,31 +25,124 @@ jobs:
         with:
           gradle-version: "8.10.2"
 
-      - name: Create folders
+      - name: Create project folders
         run: |
           mkdir -p app/src/main/java/com/example/imageseek
           mkdir -p app/src/main/res/values
           mkdir -p app/src/main/res/drawable
 
-      - name: Copy Android files
+      - name: Create settings.gradle
         run: |
-          cp app__build.gradle app/build.gradle
-          cp app__src__main__AndroidManifest.xml app/src/main/AndroidManifest.xml
-          cp app__src__main__java__com__example__imageseek__MainActivity.java app/src/main/java/com/example/imageseek/MainActivity.java
+          cat > settings.gradle <<'EOF'
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
 
-      - name: Create settings
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+
+          rootProject.name = "ImageSeek"
+          include(":app")
+          EOF
+
+      - name: Create root build.gradle
         run: |
-          printf '%s\n' 'pluginManagement {' '    repositories {' '        google()' '        mavenCentral()' '        gradlePluginPortal()' '    }' '}' '' 'dependencyResolutionManagement {' '    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)' '    repositories {' '        google()' '        mavenCentral()' '    }' '}' '' 'rootProject.name = "ImageSeek"' 'include(":app")' > settings.gradle
+          cat > build.gradle <<'EOF'
+          plugins {
+              id 'com.android.application' version '8.7.2' apply false
+          }
+          EOF
 
-      - name: Create root Gradle file
+      - name: Create app build.gradle
         run: |
-          printf '%s\n' 'plugins {' '    id "com.android.application" version "8.7.2" apply false' '}' > build.gradle
+          cat > app/build.gradle <<'EOF'
+          plugins {
+              id 'com.android.application'
+          }
 
-      - name: Create resources
+          android {
+              namespace 'com.example.imageseek'
+              compileSdk 35
+
+              defaultConfig {
+                  applicationId 'com.example.imageseek'
+                  minSdk 23
+                  targetSdk 35
+                  versionCode 1
+                  versionName '1.0'
+              }
+          }
+          EOF
+
+      - name: Copy MainActivity
         run: |
-          printf '%s\n' '<?xml version="1.0" encoding="utf-8"?>' '<resources>' '    <color name="purple_500">#6750A4</color>' '    <color name="purple_700">#4F378B</color>' '    <color name="white">#FFFFFF</color>' '</resources>' > app/src/main/res/values/colors.xml
+          cp app__src__main__java__com__example__imageseek__MainActivity.java \
+            app/src/main/java/com/example/imageseek/MainActivity.java
 
-          printf '%s\n' '<?xml version="1.0" encoding="utf-8"?>' '<resources>' '    <style name="Theme.ImageSeek" parent="android:style/Theme.Material.Light.NoActionBar">' '        <item name="android:fontFamily">sans</item>' '        <item name="android:colorAccent">@color/purple_500</item>' '    </style>' '</resources>' > app/src/main/res/values/themes.xml
+      - name: Create AndroidManifest.xml
+        run: |
+          cat > app/src/main/AndroidManifest.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+              <uses-permission android:name="android.permission.INTERNET" />
+
+              <application
+                  android:allowBackup="true"
+                  android:label="ImageSeek"
+                  android:supportsRtl="true"
+                  android:theme="@style/Theme.ImageSeek"
+                  android:usesCleartextTraffic="false">
+
+                  <activity
+                      android:name=".MainActivity"
+                      android:exported="true">
+
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+
+                  </activity>
+
+              </application>
+
+          </manifest>
+          EOF
+
+      - name: Create colors.xml
+        run: |
+          cat > app/src/main/res/values/colors.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <color name="purple_500">#6750A4</color>
+              <color name="purple_700">#4F378B</color>
+              <color name="white">#FFFFFF</color>
+          </resources>
+          EOF
+
+      - name: Create themes.xml
+        run: |
+          cat > app/src/main/res/values/themes.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <style name="Theme.ImageSeek" parent="android:style/Theme.Material.Light.NoActionBar">
+                  <item name="android:fontFamily">sans</item>
+                  <item name="android:colorAccent">@color/purple_500</item>
+                  <item name="android:statusBarColor">@color/purple_700</item>
+                  <item name="android:navigationBarColor">@color/white</item>
+              </style>
+          </resources>
+          EOF
 
       - name: Build APK
         run: gradle :app:assembleDebug --stacktrace

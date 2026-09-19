@@ -25,198 +25,31 @@ jobs:
         with:
           gradle-version: "8.10.2"
 
-      - name: Create Android project folders
-        shell: bash
+      - name: Create folders
         run: |
           mkdir -p app/src/main/java/com/example/imageseek
-          mkdir -p app/src/main/res/drawable
           mkdir -p app/src/main/res/values
+          mkdir -p app/src/main/res/drawable
 
-      - name: Copy project files
-        shell: bash
+      - name: Copy Android files
         run: |
-          if [ -f "app__build.gradle" ]; then
-            cp "app__build.gradle" "app/build.gradle"
-          fi
+          cp app__build.gradle app/build.gradle
+          cp app__src__main__AndroidManifest.xml app/src/main/AndroidManifest.xml
+          cp app__src__main__java__com__example__imageseek__MainActivity.java app/src/main/java/com/example/imageseek/MainActivity.java
 
-          if [ -f "app__src__main__AndroidManifest.xml" ]; then
-            cp "app__src__main__AndroidManifest.xml" \
-              "app/src/main/AndroidManifest.xml"
-          fi
-
-          if [ -f "app__src__main__java__com__example__imageseek__MainActivity.java" ]; then
-            cp "app__src__main__java__com__example__imageseek__MainActivity.java" \
-              "app/src/main/java/com/example/imageseek/MainActivity.java"
-          fi
-
-          if [ -f "build.gradle" ]; then
-            echo "Root build.gradle found"
-          fi
-
-          if [ -f "settings.gradle" ]; then
-            echo "settings.gradle found"
-          fi
-
-      - name: Create missing project files
-        shell: bash
+      - name: Create settings
         run: |
-          if [ ! -f "settings.gradle" ]; then
-            cat > settings.gradle <<'EOF'
-          pluginManagement {
-              repositories {
-                  google()
-                  mavenCentral()
-                  gradlePluginPortal()
-              }
-          }
+          printf '%s\n' 'pluginManagement {' '    repositories {' '        google()' '        mavenCentral()' '        gradlePluginPortal()' '    }' '}' '' 'dependencyResolutionManagement {' '    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)' '    repositories {' '        google()' '        mavenCentral()' '    }' '}' '' 'rootProject.name = "ImageSeek"' 'include(":app")' > settings.gradle
 
-          dependencyResolutionManagement {
-              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-              repositories {
-                  google()
-                  mavenCentral()
-              }
-          }
-
-          rootProject.name = "ImageSeek"
-          include(":app")
-          EOF
-          fi
-
-          if [ ! -f "build.gradle" ]; then
-            cat > build.gradle <<'EOF'
-          plugins {
-              id 'com.android.application' version '8.7.2' apply false
-          }
-          EOF
-          fi
-
-          if [ ! -f "app/build.gradle" ]; then
-            cat > app/build.gradle <<'EOF'
-          plugins {
-              id 'com.android.application'
-          }
-
-          android {
-              namespace 'com.example.imageseek'
-              compileSdk 35
-
-              defaultConfig {
-                  applicationId 'com.example.imageseek'
-                  minSdk 23
-                  targetSdk 35
-                  versionCode 1
-                  versionName '1.0'
-              }
-          }
-          EOF
-          fi
-
-      - name: Create missing resources
-        shell: bash
+      - name: Create root Gradle file
         run: |
-          cat > app/src/main/res/values/colors.xml <<'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
-          <resources>
-              <color name="purple_500">#6750A4</color>
-              <color name="purple_700">#4F378B</color>
-              <color name="white">#FFFFFF</color>
-          </resources>
-          EOF
+          printf '%s\n' 'plugins {' '    id "com.android.application" version "8.7.2" apply false' '}' > build.gradle
 
-          cat > app/src/main/res/values/themes.xml <<'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
-          <resources>
-              <style name="Theme.ImageSeek" parent="android:style/Theme.Material.Light.NoActionBar">
-                  <item name="android:fontFamily">sans</item>
-                  <item name="android:colorAccent">@color/purple_500</item>
-                  <item name="android:navigationBarColor">@color/white</item>
-                  <item name="android:statusBarColor">@color/purple_700</item>
-              </style>
-          </resources>
-          EOF
-
-      - name: Create manifest if missing
-        shell: bash
+      - name: Create resources
         run: |
-          if [ ! -f "app/src/main/AndroidManifest.xml" ]; then
-            cat > app/src/main/AndroidManifest.xml <<'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
-          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+          printf '%s\n' '<?xml version="1.0" encoding="utf-8"?>' '<resources>' '    <color name="purple_500">#6750A4</color>' '    <color name="purple_700">#4F378B</color>' '    <color name="white">#FFFFFF</color>' '</resources>' > app/src/main/res/values/colors.xml
 
-              <uses-permission android:name="android.permission.INTERNET" />
-
-              <application
-                  android:allowBackup="true"
-                  android:label="ImageSeek"
-                  android:theme="@style/Theme.ImageSeek">
-
-                  <activity
-                      android:name=".MainActivity"
-                      android:exported="true">
-
-                      <intent-filter>
-                          <action android:name="android.intent.action.MAIN" />
-                          <category android:name="android.intent.category.LAUNCHER" />
-                      </intent-filter>
-
-                  </activity>
-
-              </application>
-
-          </manifest>
-          EOF
-          fi
-
-      - name: Create MainActivity if missing
-        shell: bash
-        run: |
-          if [ ! -f "app/src/main/java/com/example/imageseek/MainActivity.java" ]; then
-            cat > app/src/main/java/com/example/imageseek/MainActivity.java <<'EOF'
-          package com.example.imageseek;
-
-          import android.app.Activity;
-          import android.os.Bundle;
-          import android.widget.TextView;
-
-          public class MainActivity extends Activity {
-
-              @Override
-              protected void onCreate(Bundle savedInstanceState) {
-                  super.onCreate(savedInstanceState);
-
-                  TextView textView = new TextView(this);
-                  textView.setText("ImageSeek");
-                  textView.setTextSize(28);
-                  textView.setPadding(40, 40, 40, 40);
-
-                  setContentView(textView);
-              }
-          }
-          EOF
-          fi
-
-      - name: Build APK
-        run: gradle :app:assembleDebug --stacktrace
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: ImageSeek-debug-apk
-          path: app/build/outputs/apk/debug/app-debug.apk          cp app__src__main__java__com__example__imageseek__MainActivity.java \
-            app/src/main/java/com/example/imageseek/MainActivity.java
-
-          cp app__src__main__res__drawable__ic_launcher_background.xml \ 
-          app/src/main/res/drawable/ic_launcher_background.xml
-
-          cp app__src__main__res__drawable__ic_launcher_foreground.xml \
-            app/src/main/res/drawable/ic_launcher_foreground.xml
-
-          cp app__src__main__res__values__colors.xml \
-            app/src/main/res/values/colors.xml
-
-          cp app__src__main__res__values__themes.xml \
-            app/src/main/res/values/themes.xml
+          printf '%s\n' '<?xml version="1.0" encoding="utf-8"?>' '<resources>' '    <style name="Theme.ImageSeek" parent="android:style/Theme.Material.Light.NoActionBar">' '        <item name="android:fontFamily">sans</item>' '        <item name="android:colorAccent">@color/purple_500</item>' '    </style>' '</resources>' > app/src/main/res/values/themes.xml
 
       - name: Build APK
         run: gradle :app:assembleDebug --stacktrace
